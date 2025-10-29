@@ -11,16 +11,10 @@ public class BinaryTreeTest : MonoBehaviour
     [SerializeField] private int minKey = 1;
     [SerializeField] private int maxKey = 1000;
 
-    [SerializeField] private Button levelOrderButton;
-    [SerializeField] private Button inOrderButton;
-    [SerializeField] private Button preOrderButton;
-    [SerializeField] private Button postOrderButton;
-
     private void Start()    
     {
         GenerateRandomTree();
-        levelOrderButton.onClick.AddListener(() => OnLevelOrderButtonClicked());
-        inOrderButton.onClick.AddListener(() => OnInOrderButtonClicked());
+
     }
 
     public void GenerateRandomTree()
