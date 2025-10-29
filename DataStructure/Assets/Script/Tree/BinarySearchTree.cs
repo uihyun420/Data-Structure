@@ -250,7 +250,7 @@ public class BinarySearchTree<TKey, TValue> : IDictionary<TKey, TValue> where TK
             {
                 yield return kvp;
             }
-
+                    
             yield return new KeyValuePair<TKey, TValue>(node.Key, node.Value);
 
             foreach (var kvp in InOrderTraversal(node.Right))
