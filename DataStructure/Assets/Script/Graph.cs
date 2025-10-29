@@ -55,4 +55,13 @@ public class Graph
             }
         }
     }
+
+
+    public void ResetNodePrevious()
+    {
+        foreach(var node in nodes)
+        {
+            node.previous = null;
+        }
+    }
 }
