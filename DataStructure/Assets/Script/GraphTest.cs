@@ -11,6 +11,8 @@ public class GraphTest : MonoBehaviour
         BFS,
         DFSRecursive,
         PathFindingBFS,
+        Dikjstra,
+        AStar,
     }
 
     public UiGraphNode nodePrefab;
@@ -57,6 +59,12 @@ public class GraphTest : MonoBehaviour
             case Algorithm.DFSRecursive:
                 break;
             case Algorithm.PathFindingBFS:
+                break;
+            case Algorithm.Dikjstra:
+                search.Dikjstra(graph.nodes[startIndex], graph.nodes[endIndex]);
+                break;
+            case Algorithm.AStar:
+                search.AStar(graph.nodes[startIndex], graph.nodes[endIndex]);
                 break;
         }
 

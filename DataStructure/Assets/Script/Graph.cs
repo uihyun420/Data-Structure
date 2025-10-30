@@ -9,7 +9,7 @@ public class Graph
 
     public void Init(int[,] grid)
     {
-        rows = grid.GetLength(0);
+        rows = grid.GetLength(0);   
         cols = grid.GetLength(1);
 
         nodes = new GraphNode[grid.Length];
