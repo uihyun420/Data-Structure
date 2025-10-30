@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class Stage : MonoBehaviour
@@ -16,7 +15,6 @@ public class Stage : MonoBehaviour
     public int erodeIteration = 2;
     [Range(0f, 0.9f)]
     public float lakePercent = 0.1f;
-
     [Range(0f, 0.9f)]
     public float treePercent = 0.1f;
     [Range(0f, 0.9f)]
@@ -29,19 +27,14 @@ public class Stage : MonoBehaviour
     public float monsterPercent = 0.1f;
 
     public Vector2 tileSize = new Vector2(16, 16);
-
-    //public Texture2D islandTexture;
     public Sprite[] islandSprites;
     public Sprite[] fowSprites;
 
     private Map map;
-
-    public Map Map
-    {
-        get { return map; }
-    }
+    public Map Map => map;
 
     private Vector3 firstTilePos;
+    private Camera cam;
 
     public int ScreenPosToTileId(Vector3 screenPos)
     {
@@ -91,8 +84,8 @@ public class Stage : MonoBehaviour
         }
         CreateGrid();
         CreatePlayer();
-
     }
+
     private void CreatePlayer()
     {
         if (player != null)
@@ -102,7 +95,7 @@ public class Stage : MonoBehaviour
         player = Instantiate(playerPrefab, GetTilePos(map.startTile.id), Quaternion.identity);
 
         var playerScript = player.GetComponent<Player>();
-        if(playerScript != null)
+        if (playerScript != null)
         {
             playerScript.SetMap(map);
             playerScript.SetStage(this);
@@ -124,13 +117,12 @@ public class Stage : MonoBehaviour
         firstTilePos.x -= mapWidth * tileSize.x * 0.5f;
         firstTilePos.y += mapHeight * tileSize.y * 0.5f;
         var pos = firstTilePos;
+
         for (int i = 0; i < mapHeight; ++i)
         {
             for (int j = 0; j < mapWidth; ++j)
             {
                 var tileId = i * mapWidth + j;
-                var tile = map.tiles[tileId];
-
                 var newGo = Instantiate(tilePrefab, transform);
                 newGo.transform.localPosition = pos;
                 pos.x += tileSize.x;
@@ -148,6 +140,7 @@ public class Stage : MonoBehaviour
         var tile = map.tiles[tileId];
         var tileGo = tileObjs[tileId];
         var ren = tileGo.GetComponent<SpriteRenderer>();
+
         if (tile.autoTileId != (int)TileTypes.Empty)
         {
             ren.sprite = islandSprites[tile.autoTileId];
@@ -156,22 +149,6 @@ public class Stage : MonoBehaviour
         {
             ren.sprite = null;
         }
-
-        // if (tile.isVisited)
-        // {
-        //     if (tile.autoTileId != (int)TileTypes.Empty)
-        //     {
-        //         ren.sprite = islandSprites[tile.autoTileId];
-        //     }
-        //     else
-        //     {
-        //         ren.sprite = null;
-        //     }
-        // }
-        // else
-        // {
-        //     ren.sprite = fowSprites[tile.autoFowId];
-        // }
     }
 
     public int visiteRadius = 1;
@@ -196,12 +173,12 @@ public class Stage : MonoBehaviour
                 DecorateTile(id);
             }
         }
+
         radius += 1;
         for (int i = -radius; i <= radius; ++i)
         {
             for (int j = -radius; j <= radius; ++j)
             {
- 
                 if (i == radius || i == -radius || j == radius || j == -radius)
                 {
                     int x = centerX + j;
@@ -217,20 +194,22 @@ public class Stage : MonoBehaviour
         }
     }
 
-    private Camera cam;
+    public void MovePlayerToTile(int targetTileId)
+    {
+        if (player != null)
+        {
+            var playerScript = player.GetComponent<Player>();
+            playerScript?.MoveToTile(targetTileId);
+        }
+    }
 
     private void Awake()
     {
         cam = Camera.main;
     }
-    // Update is called once per frame
+
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            Debug.Log(ScreenPosToTileId(Input.mousePosition));
-        }
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
             ResetStage();

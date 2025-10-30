@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
 public class Player : MonoBehaviour
 {
@@ -14,9 +13,66 @@ public class Player : MonoBehaviour
     {
         this.stage = stage;
     }
+
     public void SetMap(Map map)
     {
         this.map = map;
+        MoveToValidPosition();
+    }
+
+    private void MoveToValidPosition()
+    {
+        if (map == null || stage == null) return;
+
+        var currentTileId = GetCurrentTileId();
+        if (currentTileId >= 0 && currentTileId < map.tiles.Length)
+        {
+            var currentTile = map.tiles[currentTileId];
+            if (currentTile.CanMove) return;
+        }
+
+        Tile closestValidTile = FindClosestValidTile(currentTileId);
+
+        if (closestValidTile != null)
+        {
+            Vector3 validPosition = stage.GetTilePos(closestValidTile.id);
+            transform.position = validPosition;
+        }
+        else if (map.startTile != null)
+        {
+            Vector3 startPosition = stage.GetTilePos(map.startTile.id);
+            transform.position = startPosition;
+        }
+    }
+
+    private Tile FindClosestValidTile(int currentTileId)
+    {
+        if (map == null) return null;
+
+        Tile closestTile = null;
+        float minDistance = float.MaxValue;
+
+        int currentX = currentTileId % map.cols;
+        int currentY = currentTileId / map.cols;
+
+        foreach (var tile in map.tiles)
+        {
+            if (tile.CanMove)
+            {
+                int tileX = tile.id % map.cols;
+                int tileY = tile.id / map.cols;
+
+                float distance = Mathf.Abs(currentX - tileX) + Mathf.Abs(currentY - tileY);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestTile = tile;
+                }
+            }
+        }
+
+        return closestTile;
     }
 
     public void MoveToTile(int targetTileId)
@@ -24,81 +80,61 @@ public class Player : MonoBehaviour
         Map currentMap = stage.Map;
 
         if (currentMap == null || targetTileId < 0 || targetTileId >= currentMap.tiles.Length)
-        {
-            Debug.Log("유효하지 않은 타일");
             return;
-        }        
 
         Tile targetTile = currentMap.tiles[targetTileId];
-
-        if (!targetTile.CanMove || targetTile == null)
-        {
-            Debug.Log("이동 못함");
+        if (targetTile == null || !targetTile.CanMove)
             return;
-        }
 
         var currentTileId = GetCurrentTileId();
+        if (currentTileId < 0 || currentTileId >= currentMap.tiles.Length)
+            return;
+
         Tile startTile = currentMap.tiles[currentTileId];
+        if (startTile == null)
+            return;
+
+        if (!startTile.CanMove)
+        {
+            MoveToValidPosition();
+            var newCurrentTileId = GetCurrentTileId();
+            if (newCurrentTileId < 0 || newCurrentTileId >= currentMap.tiles.Length)
+                return;
+            startTile = currentMap.tiles[newCurrentTileId];
+        }
+
         bool pathFound = currentMap.AStar(startTile, targetTile);
 
-        if(pathFound && currentMap.path.Count > 0)
+        if (pathFound && currentMap.path.Count > 0)
         {
             currentPathIndex = 0;
             isMoving = true;
-            Debug.Log($"경로 찾기 성공! 경로 길이: {currentMap.path.Count}");
-        }
-        else
-        {
-            Debug.Log("경로 찾기 실패");
         }
     }
 
-    private int  GetCurrentTileId()
+    private int GetCurrentTileId()
     {
-        if(stage != null)
+        if (stage != null)
         {
             return stage.WorldPosToTileId(transform.position);
         }
         return -1;
     }
 
-    public void Search()
-    {
-        bool pathFound = map.AStar(map.startTile, map.castleTile);
-        if (pathFound && map.path.Count > 0)
-        {
-            currentPathIndex = 0;
-            isMoving = true;
-            Debug.Log($"경로 찾기 성공! 경로 길이: {map.path.Count}");
-        }
-        else
-        {
-            Debug.Log("경로를 찾을 수 없습니다!");
-        }
-    }
-
     private void MovePlayerPosition()
     {
-        if (map.path == null || map.path.Count == 0)
+        Map currentMap = stage.Map;
+
+        if (currentMap?.path == null || currentMap.path.Count == 0)
         {
             isMoving = false;
             return;
         }
 
-        if (currentPathIndex < map.path.Count)
+        if (currentPathIndex < currentMap.path.Count)
         {
-            var targetTile = map.path[currentPathIndex];
-            Vector3 targetPosition;
-
-            if (stage != null)
-            {
-                targetPosition = stage.GetTilePos(targetTile.id);
-            }
-            else
-            {
-                // fallback 좌표 계산
-                targetPosition = new Vector3(targetTile.id % map.cols, 0, targetTile.id / map.cols);
-            }
+            var targetTile = currentMap.path[currentPathIndex];
+            Vector3 targetPosition = stage.GetTilePos(targetTile.id);
 
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
 
@@ -106,10 +142,9 @@ public class Player : MonoBehaviour
             {
                 currentPathIndex++;
 
-                if (currentPathIndex >= map.path.Count)
+                if (currentPathIndex >= currentMap.path.Count)
                 {
                     isMoving = false;
-                    Debug.Log("성에 도착했습니다!");
                 }
             }
         }
@@ -119,19 +154,11 @@ public class Player : MonoBehaviour
         }
     }
 
-
-
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha0))
-        {
-            Search();
-        }
-
         if (isMoving)
         {
             MovePlayerPosition();
         }
     }
-
 }
