@@ -40,37 +40,32 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
     }
 
-    public TValue this[TKey key] 
+    public TValue this[TKey key]
     {
         get
         {
-            if(key == null)
-                throw new ArgumentNullException(nameof(key));
-            int index = GetIndex(key, size);
-            var bucket = table[index]; // 해시 함수의 결과값에 따라 데이터가 저장되는 해시 테이블의 각 위치
-            
-            if(bucket != null)
+            if (TryGetValue(key, out TValue value))
             {
-                foreach(var kvp in bucket)
-                {
-                    if (kvp.Key.Equals(key))
-                    {
-                        return kvp.Value;
-                    }
-                }
+                return value;
             }
-
-            throw new KeyNotFoundException("키 없음!");
+            throw new KeyNotFoundException("키를 찾을 수 없습니다.");
         }
         set
         {
-            if(key == null)
-                throw new ArgumentNullException();
+            if (key == null)    // 키 널체크
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if ((double)count / size >= LoadFactor) // 적재율 초과 시 리사이즈
+            {
+                Resize();
+            }
 
             int index = GetIndex(key, size);
             var bucket = table[index];
 
-            if(bucket == null) // 데이터가 저장되는 곳이 비어 있으면 할당 해주기 
+            if(bucket == null)
             {
                 bucket = new LinkedList<KeyValuePair<TKey, TValue>>();
                 table[index] = bucket;
@@ -86,8 +81,59 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
             }
 
             bucket.AddLast(new KeyValuePair<TKey, TValue>(key, value));
+            count++;
         }
     }
+
+
+    //public TValue this[TKey key] 
+    //{
+    //    get
+    //    {
+    //        if(key == null)
+    //            throw new ArgumentNullException(nameof(key));
+    //        int index = GetIndex(key, size);
+    //        var bucket = table[index]; // 해시 함수의 결과값에 따라 데이터가 저장되는 해시 테이블의 각 위치
+
+    //        if(bucket != null)
+    //        {
+    //            foreach(var kvp in bucket)
+    //            {
+    //                if (kvp.Key.Equals(key))
+    //                {
+    //                    return kvp.Value;
+    //                }
+    //            }
+    //        }
+
+    //        throw new KeyNotFoundException("키 없음!");
+    //    }
+    //    set
+    //    {
+    //        if(key == null)
+    //            throw new ArgumentNullException();
+
+    //        int index = GetIndex(key, size);
+    //        var bucket = table[index];
+
+    //        if(bucket == null) // 데이터가 저장되는 곳이 비어 있으면 할당 해주기 
+    //        {
+    //            bucket = new LinkedList<KeyValuePair<TKey, TValue>>();
+    //            table[index] = bucket;
+    //        }
+
+    //        foreach(var kvp in bucket)
+    //        {
+    //            if(kvp.Key.Equals(key))
+    //            {
+    //                bucket.Remove(kvp);
+    //                break;
+    //            }
+    //        }
+
+    //        bucket.AddLast(new KeyValuePair<TKey, TValue>(key, value));
+    //    }
+    //}
 
     public ICollection<TKey> Keys => table.SelectMany(bucket => bucket.Select(kvp => kvp.Key)).ToList();    
 
@@ -101,18 +147,18 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
     {
         int newSize = size * 2;
         var newTable = new LinkedList<KeyValuePair<TKey, TValue>>[newSize];
-        
+
         for (int i = 0; i < newSize; i++) // 새배열 초기화
         {
             newTable[i] = new LinkedList<KeyValuePair<TKey, TValue>>();
         }
 
-        for(int i = 0; i < size; i++) // 기존 테이블 데이터를 새 테이블로 
+        for (int i = 0; i < size; i++) // 기존 테이블 데이터를 새 테이블로 
         {
-            var bucket = table[i]; 
-            if(bucket != null)
+            var bucket = table[i];
+            if (bucket != null)
             {
-                foreach(var kvp in bucket)
+                foreach (var kvp in bucket)
                 {
                     int newIndex = GetIndex(kvp.Key, newSize);
                     newTable[newIndex].AddLast(kvp);
@@ -121,7 +167,7 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
         }
 
         table = newTable;
-        size = newSize; 
+        size = newSize;
     }
 
 
