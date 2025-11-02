@@ -11,9 +11,9 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
     private const int DefaultCapacity = 16;
     private const double LoadFactor = 0.75;
 
-    private LinkedList<KeyValuePair<TKey, TValue>>[] table;
+    public LinkedList<KeyValuePair<TKey, TValue>>[] table;
 
-    private int size;
+    public int size;
     private int count;
 
     private int GetIndex(TKey key, int size)  // 해시 함수 : 키의 해시코드 테이블 크기로 모듈로 연산
@@ -353,6 +353,32 @@ public class ChainingHashTable<TKey, TValue> : IDictionary<TKey, TValue>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
+    }
+
+    public void AddAtIndex(int index, TKey key, TValue value)
+    {
+        if (index < 0 || index >= size)
+            throw new ArgumentOutOfRangeException(nameof(index), "인덱스가 범위를 벗어났습니다.");
+
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
+
+        var bucket = table[index];
+        if (bucket == null)
+        {
+            bucket = new LinkedList<KeyValuePair<TKey, TValue>>();
+            table[index] = bucket;
+        }
+
+        // 중복 키 체크
+        foreach (var kvp in bucket)
+        {
+            if (kvp.Key.Equals(key))
+                throw new ArgumentException("키 중복");
+        }
+
+        bucket.AddLast(new KeyValuePair<TKey, TValue>(key, value));
+        count++;
     }
 }
     
