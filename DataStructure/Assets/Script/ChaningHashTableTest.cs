@@ -155,6 +155,7 @@ public class ChaningHashTableText : MonoBehaviour
                     textComponent.text = sb.ToString();
                 }
                 idx++;
+                
             }
         }
     }
