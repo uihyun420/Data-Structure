@@ -1,21 +1,26 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 
 public class InsertionSortStrategy<T> : ISortingStrategy<T>
 {
-    string[] compareString;
 
-    public InsertionSortStrategy(string[] compareString)
-    {
-        this.compareString = compareString;
-    }
     public void Sort(T[] array)
     {
-        int last = array.Length - 1;
+        int n = array.Length;
+        var comparer = Comparer<T>.Default;
 
-        for(int i = 0; i < last; i++)
+        for (int i = 1; i < n; i++)
         {
-            while('compareString' > )
+            T key = array[i];
+            int j = i - 1;
+
+            while (j >= 0 && comparer.Compare(array[j], key) > 0)
+            {
+                array[j + 1] = array[j];
+                j--;
+            }
+            array[j + 1] = key;
         }
     }
 }
